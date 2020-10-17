@@ -1,0 +1,16 @@
+package de.castcrafter.travel_anchors_fabric.block;
+
+import de.castcrafter.travel_anchors.setup.Registration;
+import de.castcrafter.travel_anchors_fabric.base.ContainerBase;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+
+public class ContainerTravelAnchor extends ContainerBase<TileTravelAnchor> {
+
+    public ContainerTravelAnchor(int window, World world, BlockPos pos, PlayerInventory playerInventory, PlayerEntity player) {
+        super(Registration.TRAVEL_ANCHOR_CONTAINER.get(), window, world, pos, playerInventory, player, 0, 0);
+        this.layoutPlayerInventorySlots(8, 51);
+    }
+}
