@@ -1,28 +1,28 @@
 package de.castcrafter.travel_anchors.block;
 
+import de.castcrafter.travel_anchors.TeleportHandler;
 import de.castcrafter.travel_anchors.TravelAnchorList;
-import de.castcrafter.travel_anchors.network.Networking;
-import de.castcrafter.travel_anchors.setup.Registration;
+import io.github.noeppi_noeppi.libx.mod.registration.TileEntityBase;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.client.model.data.IModelData;
-import net.minecraftforge.client.model.data.ModelDataMap;
+import net.minecraft.tileentity.TileEntityType;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.model.data.ModelProperty;
-import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nonnull;
 
-public class TileTravelAnchor extends TileEntity {
+public class TileTravelAnchor extends TileEntityBase {
 
     public static final ModelProperty<BlockState> MIMIC = new ModelProperty<>();
 
     private String name = "";
     private BlockState mimic = null;
 
-    public TileTravelAnchor() {
-        super(Registration.TRAVEL_ANCHOR_TILE.get());
+    public TileTravelAnchor(TileEntityType<?> tileEntityTypeIn) {
+        super(tileEntityTypeIn);
     }
 
     @Nonnull
@@ -58,6 +58,17 @@ public class TileTravelAnchor extends TileEntity {
         this.readMimic(nbt);
     }
 
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public double getMaxRenderDistanceSquared() {
+        if (Minecraft.getInstance().player == null) {
+            return super.getMaxRenderDistanceSquared();
+        } else {
+            double distance = TeleportHandler.getMaxDistance(Minecraft.getInstance().player);
+            return distance * distance;
+        }
+    }
+
     private void writeMimic(CompoundNBT tag) {
         if (this.mimic != null) {
             tag.put("mimic", NBTUtil.writeBlockState(this.mimic));
@@ -79,9 +90,7 @@ public class TileTravelAnchor extends TileEntity {
         if (this.world != null) {
             TravelAnchorList.get(this.world).setAnchor(this.world, this.pos, name);
             this.markDirty();
-            if (this.world != null && this.pos != null && !this.world.isRemote) {
-                Networking.updateTE(this.world, this.pos);
-            }
+            this.markDispatchable();
         }
     }
 
@@ -92,24 +101,6 @@ public class TileTravelAnchor extends TileEntity {
     public void setMimic(BlockState mimic) {
         this.mimic = mimic;
         this.markDirty();
-        if (this.world != null && this.pos != null && !this.world.isRemote) {
-            this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), Constants.BlockFlags.BLOCK_UPDATE + Constants.BlockFlags.NOTIFY_NEIGHBORS);
-            Networking.updateTE(this.world, this.pos);
-        }
-    }
-
-    @Override
-    public void onLoad() {
-        if (this.world != null && this.pos != null && this.world.isRemote) {
-            Networking.requestTE(this.world, this.pos);
-        }
-    }
-
-    @Nonnull
-    @Override
-    public IModelData getModelData() {
-        return new ModelDataMap.Builder()
-                .withInitial(MIMIC, this.mimic)
-                .build();
+        this.markDispatchable();
     }
 }

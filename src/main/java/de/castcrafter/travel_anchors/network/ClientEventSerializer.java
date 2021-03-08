@@ -1,5 +1,6 @@
 package de.castcrafter.travel_anchors.network;
 
+import io.github.noeppi_noeppi.libx.network.PacketSerializer;
 import net.minecraft.network.PacketBuffer;
 
 public class ClientEventSerializer implements PacketSerializer<ClientEventSerializer.ClientEvent> {
@@ -21,6 +22,7 @@ public class ClientEventSerializer implements PacketSerializer<ClientEventSerial
 
     public enum ClientEvent {
         JUMP,
-        EMPTY_HAND_INTERACT
+        EMPTY_HAND_INTERACT,
+        SNEAK
     }
 }
